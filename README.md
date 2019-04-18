@@ -26,6 +26,7 @@ I call this script 'venvwrapper' and I wanted to keep everything as simple as po
 
 By default, it uses a folder structure like this:
 
+```
 ~/.venv/
       |
       +—— projects/
@@ -33,6 +34,7 @@ By default, it uses a folder structure like this:
       +—— venvs/
       |
       +—— hooks/
+```
 
 They are defined by the following values in the script:
 
