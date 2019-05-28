@@ -8,6 +8,12 @@
 export VENV_SYSTEM_PYTHON="$(command \which python3)"
 export VENV_SYSTEM_SITEPKGS=$($VENV_SYSTEM_PYTHON -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib())")
 
+VARS_USED="
+VENV_MY_VENV_NAME
+VENV_MY_PROJECT
+VENV_MY_VENV
+VENV_MY_SITEPKGS"
+
 # First: define minimal number of env vars needed to work.
 # By default, everything will be located under the ~/.venv directory like so:
 # ~/.venv:
@@ -18,7 +24,7 @@ export VENV_SYSTEM_SITEPKGS=$($VENV_SYSTEM_PYTHON -c "import distutils.sysconfig
 #     |
 #     +--- projects
 
-function check_venv_dir () {
+function _check_venv_dir () {
     local varname="$1"
     local default="$2"
 
@@ -36,10 +42,10 @@ function check_venv_dir () {
 
 # so, we need to define those directories and create them
 # or inherit them from the .bashrc whence they came
-check_venv_dir "VENV_HOME_ROOT"    "$HOME/.venv"
-check_venv_dir "VENV_PROJECT_HOME" "$VENV_HOME_ROOT/projects"
-check_venv_dir "VENV_VENV_HOME"    "$VENV_HOME_ROOT/venvs"
-check_venv_dir "VENV_HOOK_HOME"    "$VENV_HOME_ROOT/hooks"
+_check_venv_dir "VENV_HOME_ROOT"    "$HOME/.venv"
+_check_venv_dir "VENV_PROJECT_HOME" "$VENV_HOME_ROOT/projects"
+_check_venv_dir "VENV_VENV_HOME"    "$VENV_HOME_ROOT/venvs"
+_check_venv_dir "VENV_HOOK_HOME"    "$VENV_HOME_ROOT/hooks"
 
 # // mkenv <venv name>
 function mkvenv {
@@ -108,10 +114,14 @@ function usevenv {
     # which can be used for scripting or such
     _venv_run_hook "pre_activate" "$venv_name"
     source "$activate"
-    export VENV_MY_VENV_NAME=$venv_name
+
+    export VENV_MY_SITEPKGS="$(python3 -c 'import distutils.sysconfig; print(distutils.sysconfig.get_python_lib())')"
     export VENV_MY_PROJECT=$project_fullpath
     export VENV_MY_VENV=$venv_fullpath
-    venv_set_cd
+
+    # save the current directory
+    pushd . >/dev/null
+    _venv_set_cd
 
     # save original 'deactivate' as venv_deactivate
     local venv_deactivate="$(typeset -f deactivate | sed 's/deactivate/venv_deactivate/g')"
@@ -138,16 +148,43 @@ function usevenv {
         if [ ! "$1" = "nondestructive" ]
         then
             # Remove these two functions always
-            unset -f virtualenv_deactivate >/dev/null 2>&1
-            unset -f deactivate >/dev/null 2>&1
-            # remove modded cd as well
-            unset -f cd >/dev/null 2>&1
-            cd
+            _venv_nuke_funcs "virtualenv_deactivate deactivate cd"
+            _venv_nuke_vars "$VARS_USED"
+            
+            # pop dir stack if something is in there
+            if [[ ${#DIRSTACK[@]} -gt 1 ]]
+            then
+                popd >/dev/null
+            else
+                cd
+            fi
         fi
     }'
     cd
 }
-function venv_set_cd {
+
+function _venv_nuke_funcs {
+    local targets="$1"
+
+    for t in $targets
+    do
+        typeset -f $t >/dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            unset -f $t >/dev/null 2>&1
+        fi
+    done
+}
+
+function _venv_nuke_vars {
+    local targets="$1"
+
+    for t in $targets
+    do
+        unset $t >/dev/null 2>&1
+    done
+}
+function _venv_set_cd {
 
     # first clear any cd function, if there is one already defined
     typeset -f cd >/dev/null 2>&1
@@ -257,3 +294,43 @@ function rmvenv {
     fi
 }
 
+function venvhelp {
+    NAME=$(basename $0)
+    cat << EOF
+$NAME has loaded various functions to help
+in using Python 3 virtual environments
+
+To manage virtual environments:
+* mkvenv  new_venv        # creates a new venv and enter
+* usevenv existing_venv   # activate existing venv
+* deactivate              # deactivate current venv
+* rmvenv  existing_venv   # remove an existing venv
+* lsvenvs                 # list available venvs
+
+Logically a virtual environment is separated into two parts:
+    1. virtual env - underlying Python files/libs/site-pkgs
+    2. project - your source code (for versioning)
+
+By default your venvs are organized like this:
+    - VENV_HOME_ROOT
+        + VENV_VENV_HOME (default: ~/.venv)
+            - myPythonProject
+        + VENV_PRJECT_HOME
+            - myPythonProject
+        + VENV_HOOK_HOME
+            - preactivate
+            - postactivate
+            ...
+** Those env vars can be overridden in your .bashrc file **
+
+EOF
+if [ -n "$VIRTUAL_ENV" ];
+then
+cat << EOF
+Inside your virtual environment, you can also use these:
+* cdvenv      your venv is here:      ($VENV_MY_VENV)
+* cdsitepkgs  your site-pkgs is here: ($VENV_MY_SITEPKGS)
+* cdproject   your project is here:   ($VENV_MY_PROJECT)
+EOF
+fi
+}

@@ -60,3 +60,21 @@ cdproject		# cd into the project folder of the active venv
 cdvenv			# cd into the venv folder ot the active venv
 ```
 
+Upon activating a virtual environment, the following variables are set. You can use them in any custom scripts you'd like:
+
+```
+VENV_SYSTEM_PYTHON			# path to the main host python binary
+VENV_SYSTEM_SITEPKGS		# path to the main python site packages
+
+VENV_HOME_ROOT		# the top level root folder of your venvs
+VENV_PROJECT_HOME	# path to subsequent project directory
+VENV_VENV_HOME			# path to the venv directory
+VENV_HOOK_HOME			# path to the hooks
+
+VENV_MY_VENV_NAME			# name of your currently activated venv
+VENV_MY_PROJECT			# path to your currently activated project
+VENV_MY_VENV			# path to your currently activated venv
+VENV_MY_SITEPKGS			# path to your currently activated site packages
+```
+
+Upon deactivation, the last four vars will be erased
