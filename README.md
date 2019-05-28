@@ -26,6 +26,7 @@ I call this script 'venvwrapper' and I wanted to keep everything as simple as po
 
 By default, it uses a folder structure like this:
 
+```
 ~/.venv/
       |
       +—— projects/
@@ -33,14 +34,15 @@ By default, it uses a folder structure like this:
       +—— venvs/
       |
       +—— hooks/
+```
 
 They are defined by the following values in the script:
 
 ```
 VENV_HOME_ROOT="$HOME/.venv"										# this is the top level dir for your venvs
 VENV_PROJECT_HOME="$VENV_HOME_ROOT/projects"		# where your project or source code lives
-VENV_VENV_HOME="$VENV_HOME_ROOT/venvs"					# where the virtualenv binaries live
-VENV_HOOK_HOME="$VENV_HOME_ROOT/hooks"					# where you'd put your hooks scripts
+VENV_VENV_HOME="$VENV_HOME_ROOT/venvs"			# where the virtualenv binaries live
+VENV_HOOK_HOME="$VENV_HOME_ROOT/hooks"			# where you'd put your hooks scripts
 ```
 
 You can override any one of these or all of them before calling the script. 
@@ -55,8 +57,9 @@ The script will create all the necessary directories if run for the first time, 
 mkvenv <name of virtual environment>	# create a new venv
 rmvenv <name of virtual environment>	# remove a venv
 usevenv <name of virtual environment>	# activate a venv, similar to workon
+deactivate                                # deactive current venv
 lsvenvs			# list all virtual environments
-cdproject		# cd into the project folder of the active venv
+cdproject		      # cd into the project folder of the active venv
 cdvenv			# cd into the venv folder ot the active venv
 ```
 
