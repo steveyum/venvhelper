@@ -295,39 +295,39 @@ function rmvenv {
 }
 
 function venvhelp {
-    NAME=$(basename $0)
+    NAME="venvwrapper.sh"
     cat << EOF
-$NAME has loaded various functions to help
-in using Python 3 virtual environments
 
-To manage virtual environments:
-* mkvenv  new_venv        # creates a new venv and enter
-* usevenv existing_venv   # activate existing venv
-* deactivate              # deactivate current venv
-* rmvenv  existing_venv   # remove an existing venv
-* lsvenvs                 # list available venvs
+-----------------------------------------------------------
+$NAME = virtualenv wrapper for Python 3
+-----------------------------------------------------------
+Quick Usage:
+    mkvenv [new_venv]       # creates a new venv and enter it
+    useven [existing_venv]  # enter into already created venv
+    deactivate              # deactivate and exit venv
+    rmvenv [existing_venv]  # remove existing venv
+    lsvenvs                 # list all available venvs
 
-Logically a virtual environment is separated into two parts:
-    1. virtual env - underlying Python files/libs/site-pkgs
-    2. project - your source code (for versioning)
+-----------------------------------------------------------
 
-By default your venvs are organized like this:
-    - VENV_HOME_ROOT
-        + VENV_VENV_HOME (default: ~/.venv)
-            - myPythonProject
-        + VENV_PRJECT_HOME
-            - myPythonProject
-        + VENV_HOOK_HOME
-            - preactivate
-            - postactivate
-            ...
-** Those env vars can be overridden in your .bashrc file **
+Your virtual env has two logical parts:
+    1. virtual env          - Virtual Python files/libs/site-pkgs
+    2. project              - your source code (for versioning)
+
+You can define/override the following locations in your .bash_profile
+    - VENV_HOME_ROOT        default (~/venv)
+        + VENV_VENV_HOME    (~/.venv/venvs)
+        + VENV_PROJECT_HOME (~/venv/projects)
+        + VENV_HOOK_HOME    (~/venv/hooks)
+
+-----------------------------------------------------------
 
 EOF
 if [ -n "$VIRTUAL_ENV" ];
 then
 cat << EOF
-Inside your virtual environment, you can also use these:
+You're inside your venv ($VIRTUAL_ENV), so you
+use the following additional commands...:
 * cdvenv      your venv is here:      ($VENV_MY_VENV)
 * cdsitepkgs  your site-pkgs is here: ($VENV_MY_SITEPKGS)
 * cdproject   your project is here:   ($VENV_MY_PROJECT)
