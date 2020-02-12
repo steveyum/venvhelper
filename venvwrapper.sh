@@ -53,7 +53,6 @@ function mkvenv {
     local project_fullpath="$VENV_PROJECT_HOME/$venv_name"
     local venv_fullpath="$VENV_VENV_HOME/$venv_name"
 
-
     if [ -z $venv_name ]
     then
         echo "ERROR: Please specify a name for the virtual environment you want to create!" >&2
@@ -73,6 +72,7 @@ function mkvenv {
         echo "ERROR: Unable to create virtual environment" >&2
         return 1
     fi
+    _venv_run_hook "post_make" "$venv_name"
     usevenv $venv_name
 }
 
