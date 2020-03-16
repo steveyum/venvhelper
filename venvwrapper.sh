@@ -29,10 +29,13 @@ function _check_venv_dir () {
     local default="$2"
 
     # is the whatever variable empty?
-    if [ -z "$varval" ]
+    if [ -z "${!varname}" ]
     then
+        #echo "$varname=$default"
         #printf -v $varname "$default"
         eval "export $varname=$default"
+        #echo "2. $varname = ${!varname}"
+        #echo
     fi
     if [ ! -d ${!varname} ]
     then
@@ -161,6 +164,7 @@ function usevenv {
         fi
     }'
     cd
+    _venv_run_hook "post_activate" "$venv_name"
 }
 
 function _venv_nuke_funcs {
