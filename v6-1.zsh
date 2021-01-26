@@ -24,81 +24,63 @@ export V6_SITEPKGS=$($V6_PYTHON -c "import distutils.sysconfig; print(distutils.
 #           V6_VENVS         -> your binary + pkgs directory
 #           V6_HOOKS         -> your hook scripts
 export V6_VARS=( V6_ROOT V6_PROJECTS V6_VENVS V6_HOOKS )
-# export V6_VARS2=(VENV_VENV VENV_PROJECT VENV_VENV VENV_SITEPKGS)
-# export V6_VARS_USED=(V6_NAME V6_PROJECT V6_VENV V6_SITEPKGS)
 
-# -----------------------------------------------------------------------------------------------------------------
-# SYNTAX: _envar "ENVAR" ["desiredValue"]
-#   * the function will assign ENVAR="desiredValue"
-#     only if ENVAR is either not set or is empty
-#   * if ENVAR is already defined "desiredValue" is ignored!
-#   * just calling _envar "ENVAR" will return the value of ENVAR
-function _envar () {
-    local envar="$1"    # ie, "HOME"
-    local whatItContains="${(P)envar}"  # "$HOME"
+function _check_venv_dir () {
 
-#echo "envar=$envar, contains=$whatItContains, "
-
-    if [[ $# -eq 1 ]] || [ -n "$whatItContains" ];
-    # no second arg, or env is already defined with non-zero value
-    # the just output what the (old) value is 
+    local env_name="$1"                 # example: env_name="VENV_HOME_ROOT"
+    local def_value="$2"                # example: def_value="$HOME/.venv"
+    local env_content="${(P)env_name}"  # env_content="$VENV_HOME_ROOT"
+    if [ -z "$env_content" ]
     then
-        echo $whatItContains
-        return
+        eval "export $env_name=$def_value"
     fi
-    local desiredValue="$2"
-    if [ -z $whatItContains ]; # is $HOME == ''?
+    local env_content="${(P)env_name}"
+    if [ ! -d "$env_content" ]
     then
-        # env is blank so assign it with desiredValue
-        eval "export $envar=$desiredValue"
-        #echo $desiredValue
-        return
+        echo "creating $env_content..."
+        mkdir -p $env_content
     fi
 }
+# so, we need to define those directories and create them
+# or inherit them from the .bashrc whence they came
 
-# - create foundation directories for venv to work
-function _endir {
+_check_venv_dir "VENV_HOME_ROOT"    "$HOME/.venv"
+_check_venv_dir "VENV_PROJECT_HOME" "$VENV_HOME_ROOT/projects"
+_check_venv_dir "VENV_VENV_HOME"    "$VENV_HOME_ROOT/venvs"
+_check_venv_dir "VENV_HOOK_HOME"    "$VENV_HOME_ROOT/hooks"
+# ----------------------------------------------------------------------------
+declare -A v6_dirs
+V6_DIRS=( V6_ROOT V6_PROJECTS V6_VENVS V6_HOOKS )
+v6dirs=(
+V6_ROOT      ${(z)HOME}/.venv
+V6_PROJECTS  '$V6_ROOT/projects'
+V6_VENVS     '$V6_ROOT/venvs'
+V6_HOOKS     '$V6_ROOT/hooks'
+)
+
+function envar() {
     local varname="$1"
-    local desiredVal="$2"
+    local desired="$2"
 
-#    echo "var=$varname, desiredvalue=$desiredVal"
-    local dir=$(_envar $varname $desiredVal)
-    #echo "checking directory: $dir"
-    if [ ! -e $dir ];
-    then
-        #echo "mkdir $dir"
-    fi
+    local varval=${(P)varname}
+
+    [[ -n "$varval" ]] 
+        && { echo $varval; return } 
+        || { eval "export $varname=$desired"; echo $desired; return }
 }
-_endir V6_ROOT      "$HOME/.venv"
-_endir V6_PROJECTS  "$V6_ROOT/projects"
-_endir V6_VENVS     "$V6_ROOT/venvs"
-_endir V6_HOOKS     "$V6_ROOT/hooks"
-#------------------------------------------------------------------------
-# declare -A VENV_DIRS
-# VENV_DIRS['VENV_ROOT']="$HOME/.venv"
-# VENV_DIRS['VENV_PROJECT']="$VENV_ROOT/projects"
-# VENV_DIRS['VENV_VENV']="$VENV_ROOT/venvs"
-# VENV_DIRS['VENV_HOOK']="$VENV_ROOT/hooks"
 
-# function checkDirs {
-#     for e in $(seq 1 $#VENV_VARS)
-#     do
-#         v=$VENV_VARS[$e]
-#         echo -n "v = $v"
-#         echo " ($(_envar $v))"
-#         d=$VENV_DIRS['$v']
-#         echo "d = $d"
+function setup() {
+    local varname="$1"
+    local desired="$2"
+    local newdir=$(envar $varname $desired)
 
-#         dir=$(_envar $v $d)
-#         echo "Checking dir: $d ($dir)"
-#         if [ ! -e $dir ];
-#         then
-#             echo "\tmkdir $dir"
-#         fi
-#     done
-# }
-# ------------------------------------------------
+    [[ -n "$newdir" ]]
+        && echo "$newdir"
+        || echo "nothing changed"
+}
 
+
+# ----------------------------------------------------------------------------
 function _v6_make {
     local venv_name="$1"
     local project_fullpath="$V6_PROJECTS/$venv_name"
