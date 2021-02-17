@@ -83,7 +83,7 @@ function _pyenv_make {
         return 1
     fi
     # run the post-make hook and start using!
-    _venv_run_hook "post_make" "$venv_name"
+    _pyenv_run_hook "post_make" "$venv_name"
     _pyenv_use $venv_name
 }
 
@@ -232,7 +232,6 @@ function _pyenv_ls {
 }
 
 function _pyenv_set_cd {
-
     # first clear any cd function, if there is one already defined
     typeset -f cd >/dev/null 2>&1
     if [ $? -eq 0 ]
