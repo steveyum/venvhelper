@@ -214,7 +214,7 @@ function _pyenv_remove {
 }
 
 function _pyenv_ls {
-    if [ ! -d $PYENV_VENVS ] && [ ! -d $PYENV_PROJECTS ] || [ ! "$(ls -A $PYENV_PROJECTS" ]
+	if [ ! -d $PYENV_VENVS ] && [ ! -d $PYENV_PROJECTS ] || [ ! $(ls -A $PYENV_PROJECTS) ]
     then
         echo "ERROR: You do not have any virtual environments!" >&2
         return 1
@@ -362,15 +362,15 @@ function pyenv() {
     local parm="$2"
 
     case $action in
-        make|create)   _pyenv_make $parm 
+        make|create|new)   _pyenv_make $parm 
                 ;;
-        use|workon)    _pyenv_use $parm 
+        use|workon)    	   _pyenv_use $parm 
                 ;;
-        ls|list)       _pyenv_ls
+        ls|list)           _pyenv_ls
                 ;;
-        rm|remove)     _pyenv_remove $parm
+        rm|remove)         _pyenv_remove $parm
                 ;;
-        *)      _pyenv_help
+        *)                 _pyenv_help
                 ;;
     esac
 }
