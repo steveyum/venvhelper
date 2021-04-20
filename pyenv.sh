@@ -214,11 +214,12 @@ function _pyenv_remove {
 }
 
 function _pyenv_ls {
-    if [ ! -d $PYENV_VENVS ] && [ ! -d $PYENV_PROJECTS ]
+    if [ ! -d $PYENV_VENVS ] && [ ! -d $PYENV_PROJECTS ] || [ ! "$(ls -A $PYENV_PROJECTS" ]
     then
         echo "ERROR: You do not have any virtual environments!" >&2
         return 1
     fi
+    
     echo "Here is a list of your virtual environments:\n"
     for venv in "$PYENV_VENVS"/*
     do
